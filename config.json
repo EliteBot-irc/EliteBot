@@ -1,0 +1,12 @@
+{
+    "BSERVER": "irc.example.net",
+    "BPORT": "+6697",
+    "BNICK": "EliteBot",
+    "BIDENT": "EliteBot",
+    "BNAME": "EliteBot",
+    "BBINDHOST": "0.0.0.0",
+    "UseSASL": false,
+    "SASLNICK": "EliteBot",
+    "SASLPASS": "password",
+    "ConsoleLogging": true
+}
