@@ -29,7 +29,7 @@ class Bot:
 
     def load_plugins(self):
         self.plugins = []
-        plugin_folder = "./modules"
+        plugin_folder = "./plugins"
         for filename in os.listdir(plugin_folder):
             if filename.endswith(".py"):
                 filepath = os.path.join(plugin_folder, filename)
