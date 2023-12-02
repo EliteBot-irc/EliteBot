@@ -12,10 +12,6 @@ from src.channel_manager import ChannelManager
 from src.logger import Logger
 from src.plugin_base import PluginBase
 
-# Plugin loading code
-PLUGINS = []
-
-
 class Bot:
     def __init__(self, config_file):
         self.config = self._load_config(config_file)
@@ -24,14 +20,14 @@ class Bot:
         self.connected = False
         self.ircsock = None
         self.running = True
-        self.plugins = []  # Moved the PLUGINS global to be an instance variable
-        self.load_plugins()  # Call the method to load the plugins
-
-    def load_plugins(self):
         self.plugins = []
+        self.load_plugins()
+
+    def load_plugins(self, plugin_name=None):
+        self.plugins = [p for p in self.plugins if plugin_name is None or p.__class__.__name__ != plugin_name]
         plugin_folder = "./plugins"
         for filename in os.listdir(plugin_folder):
-            if filename.endswith(".py"):
+            if filename.endswith(".py") and (plugin_name is None or filename == plugin_name + ".py"):
                 filepath = os.path.join(plugin_folder, filename)
                 spec = importlib.util.spec_from_file_location("module.name", filepath)
                 module = importlib.util.module_from_spec(spec)
@@ -39,14 +35,21 @@ class Bot:
                 if hasattr(module, "Plugin") and issubclass(module.Plugin, PluginBase):
                     plugin_instance = module.Plugin(self)
                     self.plugins.append(plugin_instance)
-    
-    def reload_plugins(self, source_nick, channel):
-        self.load_plugins()
-    # Provide feedback that the plugins were reloaded.
-    # This is optional but can be useful for debugging.
-        feedback_msg = "Plugins reloaded successfully."
-        self._ircsend(f'PRIVMSG {channel or source_nick} :{feedback_msg}')
 
+    def unload_plugin(self, plugin_name):
+        found = False
+        for plugin in self.plugins[:]:
+            if plugin.__class__.__name__ == plugin_name:
+                found = True
+                self.plugins.remove(plugin)
+                self.logger.debug(f"Plugin {plugin_name} unloaded.")
+                break
+        if not found:
+            self.logger.warning(f"Plugin {plugin_name} not found for unloading.")
+
+    def reload_plugin(self, plugin_name):
+        self.unload_plugin(plugin_name)
+        self.load_plugins(plugin_name)
 
     def _load_config(self, config_file):
         try:
@@ -124,7 +127,6 @@ class Bot:
             self.connected = False
             return
 
-
     def start(self):
         while True:
             if not self.connected:
@@ -144,7 +146,6 @@ class Bot:
 
                 ircmsg = self._decode(recvText)
                 source, command, args = self._parse_message(ircmsg)
-                print(f"Received: source: {source} | command: {command} | args: {args}")
                 self.logger.debug(f"Received: source: {source} | command: {command} | args: {args}")
 
                 if command == "PING":
@@ -169,6 +170,9 @@ class Bot:
                 if command == 'PRIVMSG':
                     channel, message = args[0], args[1]
                     source_nick = source.split('!')[0]
+                    if message.startswith('&'):
+                        cmd, *cmd_args = message[1:].split()
+                        self.handle_command(source_nick, channel, cmd, cmd_args)
                     for plugin in self.plugins:
                         plugin.handle_message(source_nick, channel, message)
 
@@ -180,7 +184,6 @@ class Bot:
                     channel = args[1]
                     self._ircsend(f'join {channel}')
                     self.channel_manager.save_channel(channel)
-                    print(f'JOIN {channel}')
 
             except socket.timeout:
                 self.connected = False
@@ -190,3 +193,30 @@ class Bot:
                 self.connected = False
 
         self.ircsock.close()
+
+    def handle_command(self, source_nick, channel, command, args):
+        self.logger.debug(f"Handling command: {command} with args: {args}")
+        if command == "load":
+            plugin_name = args[0]
+            self.load_plugins(plugin_name)
+            self._ircsend(f'PRIVMSG {channel} :Plugin {plugin_name} loaded.')
+
+        elif command == "unload":
+            plugin_name = args[0]
+            self.logger.debug(f"Attempting to unload plugin: {plugin_name}")
+            self.unload_plugin(plugin_name)
+            self._ircsend(f'PRIVMSG {channel} :Plugin {plugin_name} unloaded.')
+
+        elif command == "reload":
+            plugin_name = args[0]
+            self.reload_plugin(plugin_name)
+            self._ircsend(f'PRIVMSG {channel} :Plugin {plugin_name} reloaded.')
+
+if __name__ == "__main__":
+    try:
+        bot = Bot(sys.argv[1])
+        bot.start()
+    except KeyboardInterrupt:
+        print("\nEliteBot has been stopped.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
