@@ -79,6 +79,7 @@ class Bot:
     def _ircsend(self, msg):
         try:
             if msg != '':
+                self.logger.info(f'Sending command: {msg}')  # Log the command
                 self.ircsock.send(bytes(f'{msg}\r\n','UTF-8'))
         except Exception as e:
             self.logger.error(f"Error sending IRC message: {e}")
