@@ -22,12 +22,13 @@ class Plugin(PluginBase):
                 self.bot._ircsend(f'PART {message_parts[1]}')
                 self.channel_manager.remove_channel(message_parts[1])
 
-        elif message_parts[0] == '!quit':
-            if len(message_parts) == 1:
+
+        elif message_parts[0] == "!quit":
+            if len(message_parts) == 0:
                 quit_message = 'EliteBot!'
             else:
-                quit_message = ' '.join(message_parts[1:])
-            self.bot._ircsend(f'QUIT {quit_message}')
+                quit_message = message[len(message_parts[0])+1:]
+            self.bot._ircsend(f'QUIT :{quit_message}')
             self.bot.ircsock.close()
             self.bot.connected = False
             sys.exit()
