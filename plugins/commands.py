@@ -11,8 +11,12 @@ class Plugin(PluginBase):
             self.bot._ircsend(f'PRIVMSG {channel} :Hello, {source_nick}!')
    
         elif message_parts[0] == '!join':
-            self.channel_manager.save_channel(message_parts[1])
-            self.bot._ircsend(f'JOIN {message_parts[1]}')
+            if len(message_parts) == 0:
+                self.bot._ircsend(f'PRIVMSG {channel} :Please specify a channel to join')
+                return
+            else:
+                self.channel_manager.save_channel(message_parts[1])
+                self.bot._ircsend(f'JOIN {message_parts[1]}')
 
         elif message_parts[0] == '!part':
             if len(message_parts) == 1:

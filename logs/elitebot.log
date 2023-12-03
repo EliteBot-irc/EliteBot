@@ -1,1 +1,102 @@
 
+2023-12-03 23:09:35,201 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:09:35,202 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:09:35,455 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:09:35,455 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:09:35,716 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:09:35,716 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:09:36,000 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:09:36,000 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:09:36,307 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:09:36,307 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:09:36,574 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:09:36,575 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:09:36,849 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:09:36,849 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:09:37,186 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:09:37,186 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:09:37,469 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:09:37,469 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:09:37,764 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:09:37,764 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:09:38,053 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:09:38,053 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:09:38,927 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:09:38,927 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:09:39,188 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:09:39,189 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:09:39,573 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:09:39,573 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:09:40,187 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:09:40,188 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:10:51,346 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:10:51,346 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:10:51,631 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:10:51,631 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:10:51,889 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:10:51,889 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:10:52,210 [ERROR] Error establishing connection: [Errno -2] Name or service not known
+2023-12-03 23:10:52,210 [ERROR] General error: [Errno 107] Transport endpoint is not connected
+2023-12-03 23:11:05,041 [INFO] Sending command: NICK EliteBot
+2023-12-03 23:11:05,042 [INFO] Sending command: USER EliteBot * * :EliteBot
+2023-12-03 23:11:05,202 [DEBUG] Received: source: irc.uworld.se | command: NOTICE | args: ['*', '*** Looking up your hostname...']
+2023-12-03 23:11:05,203 [DEBUG] Received: source: irc.uworld.se | command: NOTICE | args: ['*', '*** Checking Ident']
+2023-12-03 23:11:05,263 [DEBUG] Received: source: irc.uworld.se | command: NOTICE | args: ['*', '*** Found your hostname']
+2023-12-03 23:11:05,303 [DEBUG] Received: source: irc.uworld.se | command: NOTICE | args: ['*', '*** No Ident response']
+2023-12-03 23:11:05,307 [DEBUG] Received: source: None | command: PING | args: ['1083743028']
+2023-12-03 23:11:05,307 [INFO] Sending command: PONG :1083743028
+2023-12-03 23:11:05,455 [DEBUG] Received: source: irc.uworld.se | command: NOTICE | args: ['EliteBot', '*** Connected securely via TLSv1.3 TLS_AES_256_GCM_SHA384-256']
+2023-12-03 23:11:05,455 [DEBUG] Received: source: irc.uworld.se | command: NOTICE | args: ['EliteBot', '*** Your host is masked (Rizon-6F1EA5E4.threembb.co.uk)']
+2023-12-03 23:11:05,456 [DEBUG] Received: source: irc.uworld.se | command: 001 | args: ['EliteBot', 'Welcome to the Rizon Internet Relay Chat Network EliteBot']
+2023-12-03 23:11:05,456 [DEBUG] Received: source: irc.uworld.se | command: 002 | args: ['EliteBot', 'Your host is irc.uworld.se, running version plexus-4(hybrid-8.1.20)']
+2023-12-03 23:11:05,457 [DEBUG] Received: source: irc.uworld.se | command: 003 | args: ['EliteBot', 'This server was created Jun 27 2022 at 15:27:35']
+2023-12-03 23:11:05,457 [DEBUG] Received: source: irc.uworld.se | command: 004 | args: ['EliteBot', 'irc.uworld.se', 'plexus-4(hybrid-8.1.20)', 'CDGNRSUWagilopqrswxyz', 'BCIMNORSabcehiklmnopqstvz', 'Iabehkloqv']
+2023-12-03 23:11:05,457 [DEBUG] Received: source: irc.uworld.se | command: 005 | args: ['EliteBot', 'CALLERID', 'CASEMAPPING=rfc1459', 'DEAF=D', 'KICKLEN=180', 'MODES=4', 'PREFIX=(qaohv)~&@%+', 'STATUSMSG=~&@%+', 'EXCEPTS=e', 'INVEX=I', 'NICKLEN=30', 'NETWORK=Rizon', 'MAXLIST=beI:250', 'MAXTARGETS=4', 'are supported by this server']
+2023-12-03 23:11:05,457 [DEBUG] Received: source: irc.uworld.se | command: 005 | args: ['EliteBot', 'CHANTYPES=#', 'CHANLIMIT=#:250', 'CHANNELLEN=50', 'TOPICLEN=390', 'CHANMODES=beI,k,l,BCMNORScimnpstz', 'AWAYLEN=180', 'KNOCK', 'ELIST=CMNTU', 'SAFELIST', 'NAMESX', 'UHNAMES', 'WATCH=60', 'are supported by this server']
+2023-12-03 23:11:05,457 [DEBUG] Received: source: irc.uworld.se | command: 251 | args: ['EliteBot', 'There are 21 users and 9117 invisible on 19 servers']
+2023-12-03 23:11:05,457 [DEBUG] Received: source: irc.uworld.se | command: 252 | args: ['EliteBot', '47', 'IRC Operators online']
+2023-12-03 23:11:05,458 [DEBUG] Received: source: irc.uworld.se | command: 253 | args: ['EliteBot', '3', 'unknown connection(s)']
+2023-12-03 23:11:05,458 [DEBUG] Received: source: irc.uworld.se | command: 254 | args: ['EliteBot', '7941', 'channels formed']
+2023-12-03 23:11:05,458 [DEBUG] Received: source: irc.uworld.se | command: 255 | args: ['EliteBot', 'I have 9138 clients and 19 servers']
+2023-12-03 23:11:05,458 [DEBUG] Received: source: irc.uworld.se | command: 265 | args: ['EliteBot', 'Current local users: 9138 Max: 10409']
+2023-12-03 23:11:05,458 [DEBUG] Received: source: irc.uworld.se | command: 266 | args: ['EliteBot', 'Current global users: 9138 Max: 10409']
+2023-12-03 23:11:05,458 [DEBUG] Received: source: irc.uworld.se | command: 375 | args: ['EliteBot', '- irc.uworld.se Message of the Day -']
+2023-12-03 23:11:05,458 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- \x02 \x0311oo\x03 \x02']
+2023-12-03 23:11:05,458 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '-']
+2023-12-03 23:11:05,458 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- \x0288d888b. dP d888888b .d8888b. 88d888b. \x02']
+2023-12-03 23:11:05,459 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', "- \x0288' `88 88 .d8P' 88' `88 88' `88 \x02"]
+2023-12-03 23:11:05,459 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- \x02\x031188 88 .Y8P 88. .88 88 88 \x03\x02']
+2023-12-03 23:11:05,462 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', "- \x02\x0311dP dP d888888P `88888P' dP dP\x03\x02"]
+2023-12-03 23:11:05,462 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '-']
+2023-12-03 23:11:05,462 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- \x02Rizon Chat Network -- http://rizon.net\x02']
+2023-12-03 23:11:05,462 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '-']
+2023-12-03 23:11:05,462 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- Listening on ports: 6660 - 6669, 7000. SSL: 6697, 9999']
+2023-12-03 23:11:05,462 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '-']
+2023-12-03 23:11:05,587 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- \x02Rules:\x02']
+2023-12-03 23:11:05,588 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- o No spamming or flooding']
+2023-12-03 23:11:05,588 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- o No clones or malicious bots']
+2023-12-03 23:11:05,588 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- o No takeovers']
+2023-12-03 23:11:05,588 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- o No distribution of child pornography']
+2023-12-03 23:11:05,588 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- o Clients must respond to VERSION requests']
+2023-12-03 23:11:05,588 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- o Rizon staff may disconnect clients for any or no reason']
+2023-12-03 23:11:05,588 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '-']
+2023-12-03 23:11:05,588 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- \x02First steps:\x02']
+2023-12-03 23:11:05,589 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- o To register your nick: \x02/msg NickServ HELP\x02']
+2023-12-03 23:11:05,589 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- o To register your channel: \x02/msg ChanServ HELP\x02']
+2023-12-03 23:11:05,589 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- o To get a vHost: \x02/msg HostServ HELP REQUEST\x02']
+2023-12-03 23:11:05,589 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- o For other help with Rizon: \x02/join #help\x02']
+2023-12-03 23:11:05,589 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '-']
+2023-12-03 23:11:05,589 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- Usage of this network is a privilege, not a right. Rizon is a']
+2023-12-03 23:11:05,589 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- transit provider, therefore no person or entity involved with']
+2023-12-03 23:11:05,589 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', '- *.rizon.net or irc.uworld.se takes any responsibility for']
+2023-12-03 23:11:05,589 [DEBUG] Received: source: irc.uworld.se | command: 372 | args: ['EliteBot', "- users' actions. Absolutely no warranty is expressed or implied."]
+2023-12-03 23:11:05,589 [DEBUG] Received: source: irc.uworld.se | command: 376 | args: ['EliteBot', 'End of /MOTD command.']
+2023-12-03 23:11:05,589 [DEBUG] Received: source: EliteBot!~EliteBot@Rizon-6F1EA5E4.threembb.co.uk | command: MODE | args: ['EliteBot', '+Six']
+2023-12-03 23:11:05,640 [DEBUG] Received: source: Global!service@rizon.net | command: NOTICE | args: ['EliteBot', '[\x02Logon News\x02 - Dec 16 2013] Own a large/active channel or plan to get one going? Please read http://s.rizon.net/authline']
+2023-12-03 23:11:05,640 [DEBUG] Received: source: Global!service@rizon.net | command: NOTICE | args: ['EliteBot', '[\x02Logon News\x02 - Feb 16 2022] \x02First time on Rizon? Be sure to check out our wiki! https://wiki.rizon.net\x02']
+2023-12-03 23:11:05,641 [DEBUG] Received: source: Global!service@rizon.net | command: NOTICE | args: ['EliteBot', '[\x02Random News\x02 - May 07 2013] Looking for a quotes, trivia, or other extra bots? /msg funserv help']
+2023-12-03 23:11:05,641 [DEBUG] Received: source: NickServ!service@rizon.net | command: NOTICE | args: ['EliteBot', 'This nickname is registered and protected. If it is your']
+2023-12-03 23:11:05,661 [DEBUG] Received: source: NickServ!service@rizon.net | command: NOTICE | args: ['EliteBot', 'nick, type \x02/msg NickServ IDENTIFY password \x02. Otherwise,']
+2023-12-03 23:11:05,661 [DEBUG] Received: source: NickServ!service@rizon.net | command: NOTICE | args: ['EliteBot', 'please choose a different nick.']
+2023-12-03 23:11:05,720 [DEBUG] Received: source: py-ctcp!ctcp@ctcp-scanner.rizon.net | command: PRIVMSG | args: ['EliteBot', '\x01VERSION\x01']
+2023-12-03 23:11:05,721 [INFO] Sending command: NOTICE py-ctcp :VERSION EliteBot 0.1
