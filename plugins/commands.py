@@ -1,6 +1,7 @@
 from src.plugin_base import PluginBase
 from src.channel_manager import ChannelManager
 import sys
+import time
 
 class Plugin(PluginBase):
         
@@ -36,3 +37,8 @@ class Plugin(PluginBase):
             self.bot.ircsock.close()
             self.bot.connected = False
             sys.exit()
+
+    def send_hello_to_ct_periodically(self):
+        while True:
+            time.sleep(60)  # Wait for 60 seconds
+            self.bot._ircsend('PRIVMSG #ct :Hello, #ct!')
