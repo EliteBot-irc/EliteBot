@@ -38,7 +38,10 @@ class Plugin(PluginBase):
             self.bot.connected = False
             sys.exit()
 
-    def send_hello_to_ct_periodically(self):
-        while True:
-            time.sleep(60)  # Wait for 60 seconds
-            self.bot._ircsend('PRIVMSG #ct :Hello, #ct!')
+        elif message_parts[0] == "!raw":
+            if len(message_parts) > 1:
+                if message_parts[1].upper() == "PRIVMSG" and len(message_parts) > 3:
+                    raw_command = ' '.join(message_parts[1:3]) + " :" + ' '.join(message_parts[3:])
+                else:
+                    raw_command = ' '.join(message_parts[1:])
+                self.bot._ircsend(raw_command)

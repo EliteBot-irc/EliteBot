@@ -171,14 +171,15 @@ class Bot:
                     self._ircsend(f'join {channel}')
                     self.channel_manager.save_channel(channel)
 
+                if command == 'VERSION':
+                    self._ircsend('NOTICE', f'{source_nick} :I am a bot version 1.0.0')
+
             except socket.timeout:
                 self.connected = False
                 self.logger.error(f'Socket timeout.')
             except Exception as e:
                 self.logger.error(f'General error: {e}')
                 self.connected = False
-
-        self.ircsock.close()
 
 if __name__ == '__main__':
     try:
