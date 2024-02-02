@@ -1,21 +1,24 @@
-#!/usr/bin/env python3
-
+import logging
 import os
-import time
 
 class Logger:
     def __init__(self, log_file):
         self.log_file = log_file
         os.makedirs(os.path.dirname(log_file), exist_ok=True)
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(asctime)s [%(levelname)s] %(message)s',
+                            handlers=[logging.FileHandler(log_file),
+                                      logging.StreamHandler()])
 
     def log(self, level, message):
-        timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-        log_message = f'[{timestamp}] [{level.upper()}] {message}\n'
-        try:
-            with open(self.log_file, 'a') as f:
-                f.write(log_message)
-        except Exception as e:
-            print(f"Error logging message: {e}")
+        if level.lower() == 'debug':
+            logging.debug(message)
+        elif level.lower() == 'info':
+            logging.info(message)
+        elif level.lower() == 'warning':
+            logging.warning(message)
+        elif level.lower() == 'error':
+            logging.error(message)
 
     def debug(self, message):
         self.log('debug', message)

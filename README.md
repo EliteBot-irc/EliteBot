@@ -17,7 +17,7 @@ This is an IRC bot written in Python. It connects to an IRC server, authenticate
   
 ## Usage
 
-To run the bot, simply execute the script with `python3 irc_bot.py`. The bot will connect to the specified server and authenticate if necessary. It will then listen for commands and respond accordingly.
+To run the bot, simply execute the script with `python3 elitebot.py config.json`. The bot will connect to the specified server and authenticate if necessary. It will then listen for commands and respond accordingly.
 
 ## Commands
 

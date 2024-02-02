@@ -11,10 +11,7 @@ import importlib.util
 from src.channel_manager import ChannelManager
 from src.logger import Logger
 from src.plugin_base import PluginBase
-
-# Plugin loading code
-PLUGINS = []
-
+from src.sasl import handle_sasl, handle_authenticate, handle_903
 
 class Bot:
     def __init__(self, config_file):
@@ -24,39 +21,31 @@ class Bot:
         self.connected = False
         self.ircsock = None
         self.running = True
-        self.plugins = []  # Moved the PLUGINS global to be an instance variable
-        self.load_plugins()  # Call the method to load the plugins
-
-    def load_plugins(self):
         self.plugins = []
-        plugin_folder = "./modules"
+        self.load_plugins()
+
+    def load_plugins(self, plugin_name=None):
+        self.plugins = [p for p in self.plugins if plugin_name is None or p.__class__.__name__ != plugin_name]
+        plugin_folder = "./plugins"
         for filename in os.listdir(plugin_folder):
-            if filename.endswith(".py"):
+            if filename.endswith('.py') and (plugin_name is None or filename == plugin_name + '.py'):
                 filepath = os.path.join(plugin_folder, filename)
                 spec = importlib.util.spec_from_file_location("module.name", filepath)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
-                if hasattr(module, "Plugin") and issubclass(module.Plugin, PluginBase):
+                if hasattr(module, 'Plugin') and issubclass(module.Plugin, PluginBase):
                     plugin_instance = module.Plugin(self)
                     self.plugins.append(plugin_instance)
-    
-    def reload_plugins(self, source_nick, channel):
-        self.load_plugins()
-    # Provide feedback that the plugins were reloaded.
-    # This is optional but can be useful for debugging.
-        feedback_msg = "Plugins reloaded successfully."
-        self._ircsend(f'PRIVMSG {channel or source_nick} :{feedback_msg}')
-
 
     def _load_config(self, config_file):
         try:
             with open(config_file, 'r') as file:
                 config = json.load(file)
         except FileNotFoundError as e:
-            self.logger.error(f"Error loading config file: {e}")
+            self.logger.error(f'Error loading config file: {e}')
             raise
         except json.JSONDecodeError as e:
-            self.logger.error(f"Error parsing config file: {e}")
+            self.logger.error(f'Error parsing config file: {e}')
             raise
         return config
 
@@ -76,9 +65,10 @@ class Bot:
     def _ircsend(self, msg):
         try:
             if msg != '':
+                self.logger.info(f'Sending command: {msg}')
                 self.ircsock.send(bytes(f'{msg}\r\n','UTF-8'))
         except Exception as e:
-            self.logger.error(f"Error sending IRC message: {e}")
+            self.logger.error(f'Error sending IRC message: {e}')
             raise
 
     def _parse_message(self, message):
@@ -124,7 +114,6 @@ class Bot:
             self.connected = False
             return
 
-
     def start(self):
         while True:
             if not self.connected:
@@ -132,7 +121,7 @@ class Bot:
                     self.connect()
                     self.connected = True
                 except Exception as e:
-                    self.logger.error(f"Connection error: {e}")
+                    self.logger.error(f'Connection error: {e}')
                     time.sleep(60)
                     continue
 
@@ -144,23 +133,21 @@ class Bot:
 
                 ircmsg = self._decode(recvText)
                 source, command, args = self._parse_message(ircmsg)
-                print(f"Received: source: {source} | command: {command} | args: {args}")
-                self.logger.debug(f"Received: source: {source} | command: {command} | args: {args}")
+                self.logger.debug(f'Received: source: {source} | command: {command} | args: {args}')
 
-                if command == "PING":
+                if command == 'PING':
                     nospoof = args[0][1:] if args[0].startswith(':') else args[0]
                     self._ircsend(f'PONG :{nospoof}')
 
-                if command == 'CAP' and args[1] == 'ACK' and 'sasl' in args[2]:
-                    self._ircsend('AUTHENTICATE PLAIN')
 
-                elif command == 'AUTHENTICATE' and args[0] == '+':
-                    authpass = self.config["SASLNICK"] + '\x00' + self.config["SASLNICK"] + '\x00' + self.config["SASLPASS"]
-                    ap_encoded = str(base64.b64encode(authpass.encode('UTF-8')), 'UTF-8')
-                    self._ircsend('AUTHENTICATE ' + ap_encoded)
+                if command == 'CAP' and args[1] == 'ACK' and 'sasl' in args[2]:
+                    handle_sasl(self.config, self._ircsend)
+
+                elif command == 'AUTHENTICATE':
+                    handle_authenticate(args, self.config, self._ircsend)
 
                 elif command == '903':
-                    self._ircsend('CAP END')
+                    handle_903(self._ircsend)
 
                 if command == 'PRIVMSG' and args[1].startswith('\x01VERSION\x01'):
                     source_nick = source.split('!')[0]
@@ -169,6 +156,9 @@ class Bot:
                 if command == 'PRIVMSG':
                     channel, message = args[0], args[1]
                     source_nick = source.split('!')[0]
+                    if message.startswith('&'):
+                        cmd, *cmd_args = message[1:].split()
+                        self.handle_command(source_nick, channel, cmd, cmd_args)
                     for plugin in self.plugins:
                         plugin.handle_message(source_nick, channel, message)
 
@@ -180,13 +170,21 @@ class Bot:
                     channel = args[1]
                     self._ircsend(f'join {channel}')
                     self.channel_manager.save_channel(channel)
-                    print(f'JOIN {channel}')
 
             except socket.timeout:
                 self.connected = False
-                self.logger.error(f"Socket timeout.")
+                self.logger.error(f'Socket timeout.')
             except Exception as e:
-                self.logger.error(f"General error: {e}")
+                self.logger.error(f'General error: {e}')
                 self.connected = False
 
         self.ircsock.close()
+
+if __name__ == '__main__':
+    try:
+        bot = Bot(sys.argv[1])
+        bot.start()
+    except KeyboardInterrupt:
+        print('\nEliteBot has been stopped.')
+    except Exception as e:
+        print(f'An unexpected error occurred: {e}')
