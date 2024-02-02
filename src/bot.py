@@ -96,7 +96,8 @@ class Bot:
             self.ircsock.settimeout(240)
 
             if str(self.config['BPORT'])[:1] == '+':
-                self.ircsock = ssl.wrap_socket(self.ircsock)
+                context = ssl.create_default_context()
+                self.ircsock = context.wrap_socket(self.ircsock, server_hostname=self.config['BSERVER'])
                 port = int(self.config['BPORT'][1:])
             else:
                 port = int(self.config['BPORT'])
