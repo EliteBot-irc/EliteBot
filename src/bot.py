@@ -12,7 +12,7 @@ from src.channel_manager import ChannelManager
 from src.logger import Logger
 from src.plugin_base import PluginBase
 from src.sasl import SASLHandler
-from src.event_handlers import handle_ping, handle_cap, handle_authenticate, handle_903, handle_privmsg, handle_001, handle_invite, handle_version
+from src.event_handlers import handle_ping, handle_cap, handle_authenticate, handle_903, handle_001, handle_invite, handle_version
 
 class Bot:
     def __init__(self, config_file):
@@ -31,7 +31,6 @@ class Bot:
             'CAP': handle_cap,
             'AUTHENTICATE': handle_authenticate,
             '903': handle_903,
-            'PRIVMSG': handle_privmsg,
             '001': handle_001,
             'INVITE': handle_invite,
             'VERSION': handle_version,
@@ -115,7 +114,7 @@ class Bot:
     def connect(self):
         try:
             self.ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.ircsock.settimeout(240)
+            self.ircsock.settimeout(None)  
 
             if str(self.config["Connection"].get("Port"))[:1] == '+':
                 context = ssl.create_default_context()
@@ -159,6 +158,15 @@ class Bot:
                 self.logger.debug(f'Received: source: {source} | command: {command} | args: {args}')
 
                 self.process_command(command, args)
+                
+                if command == 'PRIVMSG':
+                    channel, message = args[0], args[1]
+                    source_nick = source.split('!')[0]
+                    if message.startswith('&'):
+                        cmd, *cmd_args = message[1:].split()
+                        self.handle_command(source_nick, channel, cmd, cmd_args)
+                    for plugin in self.plugins:
+                        plugin.handle_message(source_nick, channel, message)
 
             except socket.timeout:
                 self.connected = False

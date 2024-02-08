@@ -23,20 +23,6 @@ def handle_authenticate(bot, args):
 def handle_903(bot, args):
     bot.sasl_handler.handle_903(bot._ircsend)
 
-def handle_privmsg(bot, args):
-    source, args = args
-    if args[1].startswith('\x01VERSION\x01'):
-        source_nick = source.split('!')[0]
-        bot._ircsend(f'NOTICE {source_nick} :\x01VERSION EliteBot 0.1\x01')
-    else:
-        channel, message = args[0], args[1]
-        source_nick = source.split('!')[0]
-        if message.startswith('&'):
-            cmd, *cmd_args = message[1:].split()
-            bot.handle_command(source_nick, channel, cmd, cmd_args)
-        for plugin in bot.plugins:
-            plugin.handle_message(source_nick, channel, message)
-
 def handle_001(bot, args):
     for channel in bot.channel_manager.get_channels():
         bot._ircsend(f'JOIN {channel}')
