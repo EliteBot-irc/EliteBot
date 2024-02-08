@@ -1,12 +1,18 @@
 {
-    "BSERVER": "irc.rizon.net",
-    "BPORT": "+6697",
-    "BNICK": "EliteBot",
-    "BIDENT": "EliteBot",
-    "BNAME": "EliteBot",
-    "BBINDHOST": "0.0.0.0",
-    "UseSASL": true,
-    "SASLNICK": "EliteBot",
-    "SASLPASS": "789abc//",
-    "ConsoleLogging": true
+    "Connection": {
+        "Hostname": "irc.example.net",
+        "Port": "+6697",
+        "Nick": "EliteBot",
+        "Ident": "EliteBot",
+        "Name": "EliteBot",
+        "BindHost": "0.0.0.0"
+    },
+    "SASL": {
+        "UseSASL": true,
+        "SASLNick": "EliteBot",
+        "SASLPassword": "password"
+    },
+    "Logging": {
+        "Console": true
+    }
 }

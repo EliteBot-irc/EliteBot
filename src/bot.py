@@ -4,14 +4,15 @@ import socket
 import ssl
 import time
 import json
-import base64
+import inspect
 import sys
 import os
 import importlib.util
 from src.channel_manager import ChannelManager
 from src.logger import Logger
 from src.plugin_base import PluginBase
-from src.sasl import handle_sasl, handle_authenticate, handle_903
+from src.sasl import SASLHandler
+from src.event_handlers import handle_ping, handle_cap, handle_authenticate, handle_903, handle_001, handle_invite, handle_version
 
 class Bot:
     def __init__(self, config_file):
@@ -22,20 +23,40 @@ class Bot:
         self.ircsock = None
         self.running = True
         self.plugins = []
+        self.sasl_handler = SASLHandler(self.config, self._ircsend)
         self.load_plugins()
 
-    def load_plugins(self, plugin_name=None):
-        self.plugins = [p for p in self.plugins if plugin_name is None or p.__class__.__name__ != plugin_name]
+        self.command_handlers = {
+            'PING': handle_ping,
+            'CAP': handle_cap,
+            'AUTHENTICATE': handle_authenticate,
+            '903': handle_903,
+            '001': handle_001,
+            'INVITE': handle_invite,
+            'VERSION': handle_version,
+        }
+
+    def process_command(self, command, args):
+        handler = self.command_handlers.get(command)
+        if handler:
+            handler(self, args)
+        else:
+            self.logger.debug(f'Received: source: {self} | command: {command} | args: {args}')
+            self.logger.info(f'No handler for command {command}')
+
+    def load_plugins(self):
+        self.plugins = []
         plugin_folder = "./plugins"
         for filename in os.listdir(plugin_folder):
-            if filename.endswith('.py') and (plugin_name is None or filename == plugin_name + '.py'):
+            if filename.endswith('.py'):
                 filepath = os.path.join(plugin_folder, filename)
                 spec = importlib.util.spec_from_file_location("module.name", filepath)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
-                if hasattr(module, 'Plugin') and issubclass(module.Plugin, PluginBase):
-                    plugin_instance = module.Plugin(self)
-                    self.plugins.append(plugin_instance)
+                for name, obj in inspect.getmembers(module):
+                    if inspect.isclass(obj) and issubclass(obj, PluginBase) and obj is not PluginBase:
+                        plugin_instance = obj(self)
+                        self.plugins.append(plugin_instance)
 
     def _load_config(self, config_file):
         try:
@@ -93,22 +114,22 @@ class Bot:
     def connect(self):
         try:
             self.ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.ircsock.settimeout(240)
+            self.ircsock.settimeout(None)  
 
-            if str(self.config['BPORT'])[:1] == '+':
+            if str(self.config["Connection"].get("Port"))[:1] == '+':
                 context = ssl.create_default_context()
-                self.ircsock = context.wrap_socket(self.ircsock, server_hostname=self.config['BSERVER'])
-                port = int(self.config['BPORT'][1:])
+                self.ircsock = context.wrap_socket(self.ircsock, server_hostname=self.config["Connection"].get("Hostname"))
+                port = int(self.config['Connection'].get('Port')[1:])
             else:
-                port = int(self.config['BPORT'])
+                port = int(self.config['Connection'].get('Port'))
 
-            if 'BBINDHOST' in self.config:
-                self.ircsock.bind((self.config['BBINDHOST'], 0))
+            if 'BindHost' in self.config:
+                self.ircsock.bind((self.config['Connection'].get('BindHost'), 0))
 
-            self.ircsock.connect_ex((self.config['BSERVER'], port))
-            self._ircsend(f'NICK {self.config["BNICK"]}')
-            self._ircsend(f'USER {self.config["BIDENT"]} * * :{self.config["BNAME"]}')
-            if self.config['UseSASL']:
+            self.ircsock.connect_ex((self.config['Connection'].get('Hostname'), port))
+            self._ircsend(f'NICK {self.config["Connection"].get("Nick")}')
+            self._ircsend(f'USER {self.config["Connection"].get("Ident")} * * :{self.config["Connection"].get("Name")}')
+            if self.config["SASL"].get("UseSASL"):
                 self._ircsend('CAP REQ :sasl')
         except Exception as e:
             self.logger.error(f"Error establishing connection: {e}")
@@ -136,24 +157,8 @@ class Bot:
                 source, command, args = self._parse_message(ircmsg)
                 self.logger.debug(f'Received: source: {source} | command: {command} | args: {args}')
 
-                if command == 'PING':
-                    nospoof = args[0][1:] if args[0].startswith(':') else args[0]
-                    self._ircsend(f'PONG :{nospoof}')
-
-
-                if command == 'CAP' and args[1] == 'ACK' and 'sasl' in args[2]:
-                    handle_sasl(self.config, self._ircsend)
-
-                elif command == 'AUTHENTICATE':
-                    handle_authenticate(args, self.config, self._ircsend)
-
-                elif command == '903':
-                    handle_903(self._ircsend)
-
-                if command == 'PRIVMSG' and args[1].startswith('\x01VERSION\x01'):
-                    source_nick = source.split('!')[0]
-                    self._ircsend(f'NOTICE {source_nick} :\x01VERSION EliteBot 0.1\x01')
-
+                self.process_command(command, args)
+                
                 if command == 'PRIVMSG':
                     channel, message = args[0], args[1]
                     source_nick = source.split('!')[0]
@@ -162,18 +167,6 @@ class Bot:
                         self.handle_command(source_nick, channel, cmd, cmd_args)
                     for plugin in self.plugins:
                         plugin.handle_message(source_nick, channel, message)
-
-                if command == '001':
-                    for channel in self.channel_manager.get_channels():
-                        self._ircsend(f'JOIN {channel}')
-
-                if command == 'INVITE':
-                    channel = args[1]
-                    self._ircsend(f'join {channel}')
-                    self.channel_manager.save_channel(channel)
-
-                if command == 'VERSION':
-                    self._ircsend('NOTICE', f'{source_nick} :I am a bot version 1.0.0')
 
             except socket.timeout:
                 self.connected = False
