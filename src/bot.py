@@ -1,56 +1,62 @@
 #!/usr/bin/env python3
 
-import socket
-import ssl
-import time
-import json
-import inspect
-import sys
-import os
+import asyncio
 import importlib.util
+import inspect
+import json
+import os
+import ssl
+import sys
+import yaml
+
 from src.channel_manager import ChannelManager
 from src.logger import Logger
 from src.plugin_base import PluginBase
-from src.sasl import SASLHandler
-from src.event_handlers import handle_ping, handle_cap, handle_authenticate, handle_903, handle_001, handle_invite, handle_version
+from src.sasl import handle_sasl, handle_authenticate, handle_903
 
 class Bot:
     def __init__(self, config_file):
-        self.config = self._load_config(config_file)
+        self.config = self.load_config(config_file)
+        self.validate_config(self.config)
+        self.connection_string = self.config['Database'].get('ConnectionString')
         self.channel_manager = ChannelManager()
         self.logger = Logger('logs/elitebot.log')
         self.connected = False
-        self.ircsock = None
+        self.reader = None
+        self.writer = None
         self.running = True
         self.plugins = []
-        self.sasl_handler = SASLHandler(self.config, self._ircsend)
         self.load_plugins()
+        
+    def validate_config(self, config):
+        required_fields = [
+            ['Connection', 'Port'],
+            ['Connection', 'Hostname'],
+            ['Connection', 'Nick'],
+            ['Connection', 'Ident'],
+            ['Connection', 'Name'],
+            ['Database', 'ConnectionString']
+        ]
 
-        self.command_handlers = {
-            'PING': handle_ping,
-            'CAP': handle_cap,
-            'AUTHENTICATE': handle_authenticate,
-            '903': handle_903,
-            '001': handle_001,
-            'INVITE': handle_invite,
-            'VERSION': handle_version,
-        }
+        for field in required_fields:
+            if not self.get_nested_config_value(config, field):
+                raise ValueError(f'Missing required config field: {" -> ".join(field)}')
 
-    def process_command(self, command, args):
-        handler = self.command_handlers.get(command)
-        if handler:
-            handler(self, args)
-        else:
-            self.logger.debug(f'Received: source: {self} | command: {command} | args: {args}')
-            self.logger.info(f'No handler for command {command}')
+    def get_nested_config_value(self, config, keys):
+        value = config
+        for key in keys:
+            value = value.get(key)
+            if value is None:
+                return None
+        return value
 
     def load_plugins(self):
         self.plugins = []
-        plugin_folder = "./plugins"
+        plugin_folder = './plugins'
         for filename in os.listdir(plugin_folder):
             if filename.endswith('.py'):
                 filepath = os.path.join(plugin_folder, filename)
-                spec = importlib.util.spec_from_file_location("module.name", filepath)
+                spec = importlib.util.spec_from_file_location('module.name', filepath)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
                 for name, obj in inspect.getmembers(module):
@@ -58,41 +64,44 @@ class Bot:
                         plugin_instance = obj(self)
                         self.plugins.append(plugin_instance)
 
-    def _load_config(self, config_file):
+    def load_config(self, config_file):
+        _, ext = os.path.splitext(config_file)
         try:
             with open(config_file, 'r') as file:
-                config = json.load(file)
+                if ext == '.json':
+                    config = json.load(file)
+                elif ext == '.yaml' or ext == '.yml':
+                    config = yaml.safe_load(file)
+                else:
+                    raise ValueError(f'Unsupported file extension: {ext}')
         except FileNotFoundError as e:
             self.logger.error(f'Error loading config file: {e}')
             raise
-        except json.JSONDecodeError as e:
+        except (json.JSONDecodeError, yaml.YAMLError) as e:
             self.logger.error(f'Error parsing config file: {e}')
             raise
         return config
 
-    def _decode(self, bytes):
-        try: 
-            text = bytes.decode('utf-8')
-        except UnicodeDecodeError:
-            try: 
-                text = bytes.decode('latin1')
+    def decode(self, bytes):
+        for encoding in ['utf-8', 'latin1', 'iso-8859-1', 'cp1252']:
+            try:
+                return bytes.decode(encoding)
             except UnicodeDecodeError:
-                try: 
-                    text = bytes.decode('iso-8859-1')
-                except UnicodeDecodeError:
-                    text = bytes.decode('cp1252')
-        return text
+                continue
+        self.logger.error('Could not decode byte string with any known encoding')
+        return bytes.decode('utf-8', 'ignore')
 
-    def _ircsend(self, msg):
+    async def ircsend(self, msg):
         try:
             if msg != '':
                 self.logger.info(f'Sending command: {msg}')
-                self.ircsock.send(bytes(f'{msg}\r\n','UTF-8'))
+                self.writer.write(bytes(f'{msg}\r\n', 'UTF-8'))
+                await self.writer.drain()
         except Exception as e:
             self.logger.error(f'Error sending IRC message: {e}')
             raise
 
-    def _parse_message(self, message):
+    def parse_message(self, message):
         parts = message.split()
         if not parts:
             return None, None, []
@@ -111,54 +120,63 @@ class Bot:
             args.append(' '.join(parts[trailing_arg_start:])[1:])
         return source, command, args
 
-    def connect(self):
+    async def connect(self):
         try:
-            self.ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.ircsock.settimeout(None)  
+            ssl_context = None
+            if str(self.config['Connection'].get('Port'))[:1] == '+':
+                ssl_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)  # Corrected here
+                    
+            self.reader, self.writer = await asyncio.open_connection(
+                self.config['Connection'].get('Hostname'),
+                int(self.config['Connection'].get('Port')[1:]) if ssl_context else int(self.config['Connection'].get('Port')),
+                ssl=ssl_context
+            )
 
-            if str(self.config["Connection"].get("Port"))[:1] == '+':
-                context = ssl.create_default_context()
-                self.ircsock = context.wrap_socket(self.ircsock, server_hostname=self.config["Connection"].get("Hostname"))
-                port = int(self.config['Connection'].get('Port')[1:])
-            else:
-                port = int(self.config['Connection'].get('Port'))
-
-            if 'BindHost' in self.config:
-                self.ircsock.bind((self.config['Connection'].get('BindHost'), 0))
-
-            self.ircsock.connect_ex((self.config['Connection'].get('Hostname'), port))
-            self._ircsend(f'NICK {self.config["Connection"].get("Nick")}')
-            self._ircsend(f'USER {self.config["Connection"].get("Ident")} * * :{self.config["Connection"].get("Name")}')
-            if self.config["SASL"].get("UseSASL"):
-                self._ircsend('CAP REQ :sasl')
+            await self.ircsend(f'NICK {self.config["Connection"].get("Nick")}')
+            await self.ircsend(f'USER {self.config["Connection"].get("Ident")} * * :{self.config["Connection"].get("Name")}')
+            if self.config['SASL'].get('UseSASL'):
+                await self.ircsend('CAP REQ :sasl')
         except Exception as e:
-            self.logger.error(f"Error establishing connection: {e}")
+            self.logger.error(f'Error establishing connection: {e}')
             self.connected = False
             return
-
-    def start(self):
+        
+    async def start(self):
         while True:
             if not self.connected:
                 try:
-                    self.connect()
+                    await self.connect()
                     self.connected = True
                 except Exception as e:
                     self.logger.error(f'Connection error: {e}')
-                    time.sleep(60)
+                    await asyncio.sleep(60)
                     continue
 
             try:
-                recvText = self.ircsock.recv(2048)
+                recvText = await self.reader.read(2048)
                 if not recvText:
                     self.connected = False
                     continue
 
-                ircmsg = self._decode(recvText)
-                source, command, args = self._parse_message(ircmsg)
-                self.logger.debug(f'Received: source: {source} | command: {command} | args: {args}')
-
-                self.process_command(command, args)
+                ircmsg = self.decode(recvText)
                 
+                if '\r\n' in ircmsg:
+                    messages = ircmsg.split('\r\n')
+                elif '\n' in ircmsg:
+                    messages = ircmsg.split('\n')
+                else:
+                    messages = [ircmsg]  # If no newline characters, treat the whole message as a single message
+
+                for message in messages:
+                    if message:  # Check if message is not empty
+                        source, command, args = self.parse_message(message)
+                        self.logger.debug(f'Received: source: {source} | command: {command} | args: {args}')
+
+                if command == 'PING':
+                    nospoof = args[0][1:] if args[0].startswith(':') else args[0]
+                    await self.ircsend(f'PONG :{nospoof}')
+                    continue
+
                 if command == 'PRIVMSG':
                     channel, message = args[0], args[1]
                     source_nick = source.split('!')[0]
@@ -168,9 +186,31 @@ class Bot:
                     for plugin in self.plugins:
                         plugin.handle_message(source_nick, channel, message)
 
-            except socket.timeout:
-                self.connected = False
-                self.logger.error(f'Socket timeout.')
+                elif command == 'CAP' and args[1] == 'ACK' and 'sasl' in args[2]:
+                    handle_sasl(self.config, self.ircsend)
+
+                elif command == 'AUTHENTICATE':
+                    handle_authenticate(args, self.config, self.ircsend)
+
+                elif command == '903':
+                    handle_903(self.ircsend)
+
+                if command == 'PRIVMSG' and args[1].startswith('\x01VERSION\x01'):
+                    source_nick = source.split('!')[0]
+                    await self.ircsend(f'NOTICE {source_nick} :\x01VERSION EliteBot 0.1\x01')
+
+                if command == '001':
+                    for channel in self.channel_manager.get_channels():
+                        self.ircsend(f'JOIN {channel}')
+
+                if command == 'INVITE':
+                    channel = args[1]
+                    await self.ircsend(f'JOIN {channel}')
+                    self.channel_manager.save_channel(channel)
+
+                if command == 'VERSION':
+                    self.ircsend('NOTICE', f'{source_nick} :I am a bot version 1.0.0')
+
             except Exception as e:
                 self.logger.error(f'General error: {e}')
                 self.connected = False
@@ -178,7 +218,7 @@ class Bot:
 if __name__ == '__main__':
     try:
         bot = Bot(sys.argv[1])
-        bot.start()
+        asyncio.run(bot.start())
     except KeyboardInterrupt:
         print('\nEliteBot has been stopped.')
     except Exception as e:
